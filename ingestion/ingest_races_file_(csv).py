@@ -7,12 +7,12 @@ from pyspark.sql.functions import to_timestamp, concat, col, lit, current_timest
 
 # DBTITLE 1,Define Schema for races dataframe
 races_schema = StructType(fields=[StructField("raceId", IntegerType(), False),
-                                  StructField("year", IntegerType(), False),
-                                  StructField("round", IntegerType(), False),
-                                  StructField("circuitId", IntegerType(), False),
-                                  StructField("name", StringType(), False),
-                                  StructField("date", DateType(), False),
-                                  StructField("time", StringType(), False),
+                                  StructField("year", IntegerType(), True),
+                                  StructField("round", IntegerType(), True),
+                                  StructField("circuitId", IntegerType(), True),
+                                  StructField("name", StringType(), True),
+                                  StructField("date", DateType(), True),
+                                  StructField("time", StringType(), True),
                                   ])
 
 # COMMAND ----------
