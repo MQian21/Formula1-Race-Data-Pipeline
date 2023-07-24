@@ -53,7 +53,7 @@ races_timestamp_df = races_renamed_df.withColumn('race_timestamp', to_timestamp(
 # COMMAND ----------
 
 # DBTITLE 1,Select Required Columns
-races_selected_df = races_timestamp_df.select(col('race_id'), col('race_year'), col('round'), col('name'), col('ingestion_date'), col('race_timestamp'))
+races_selected_df = races_timestamp_df.select(col('race_id'), col('race_year'), col('round'), col('name'), col('ingestion_date'), col('race_timestamp'), col('circuit_id'))
 
 # COMMAND ----------
 
