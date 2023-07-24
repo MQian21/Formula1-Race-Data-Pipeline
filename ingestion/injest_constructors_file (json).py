@@ -1,4 +1,17 @@
 # Databricks notebook source
+# MAGIC %run "../includes/configuration"
+
+# COMMAND ----------
+
+# MAGIC %run "../includes/common_functions"
+
+# COMMAND ----------
+
+dbutils.widgets.text("data_source", "")
+data_source = dbutils.widgets.get("data_source")
+
+# COMMAND ----------
+
 # DBTITLE 1,Import Libs
 from pyspark.sql.types import *
 from pyspark.sql.functions import to_timestamp, concat, col, lit, current_timestamp
@@ -18,7 +31,7 @@ constructors_schema = StructType(fields=[StructField("constructorId", IntegerTyp
 # DBTITLE 1,Use dataframe reader to read json file
 constructor_df = spark.read \
 .schema(constructors_schema) \
-.json("/mnt/formula1lakedata/raw/constructors.json")
+.json(f"{raw_folder_path}/constructors.json")
 
 display(constructor_df)
 
@@ -32,13 +45,14 @@ constructor_dropped_df = constructor_df.drop('url')
 # DBTITLE 1,Add ingestion date and rename columns
 constructor_final_df = constructor_dropped_df.withColumnRenamed("constructorId", "constructor_id") \
                                              .withColumnRenamed("constructorRef", "constructor_ref") \
-                                             .withColumn("ingestion_date", current_timestamp())
+                                             .withColumn("ingestion_date", current_timestamp()) \
+                                             .withColumn("data_source", lit(data_source))
 
 # COMMAND ----------
 
 # DBTITLE 1,Write to processed container
-constructor_final_df.write.mode("overwrite").parquet("/mnt/formula1lakedata.processed/constructors")
+constructor_final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/constructors")
 
 # COMMAND ----------
 
-dbutils.fs.ls("/mnt/formula1lakedata.processed/constructors")
+display(spark.read.parquet(f"{processed_folder_path}/constructors"))

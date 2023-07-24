@@ -4,8 +4,22 @@
 
 # COMMAND ----------
 
+# DBTITLE 1,Calling config notebooks
+# MAGIC %run "../includes/configuration"
+
+# COMMAND ----------
+
+# MAGIC %run "../includes/common_functions"
+
+# COMMAND ----------
+
+dbutils.widgets.text("data_source", "")
+data_source = dbutils.widgets.get("data_source")
+
+# COMMAND ----------
+
 from pyspark.sql.types import *
-from pyspark.sql.functions import col, current_timestamp
+from pyspark.sql.functions import col, lit
 
 
 # COMMAND ----------
@@ -29,7 +43,7 @@ circuits_schema = StructType(fields=[StructField("circuitId", IntegerType(), Fal
 circuits_df = spark.read \
 .option("header", True) \
 .schema(circuits_schema) \
-.csv("/mnt/formula1lakedata/raw/circuits.csv")
+.csv(f"{raw_folder_path}/circuits.csv")
 
 # COMMAND ----------
 
@@ -43,15 +57,22 @@ circuits_renamed_df = circuits_selected_df.withColumnRenamed("circuitId", "circu
 .withColumnRenamed("circuitRef", "circuit_ref") \
 .withColumnRenamed("lat", "latitude") \
 .withColumnRenamed("lng", "longitude") \
-.withColumnRenamed("alt", "altitude")
+.withColumnRenamed("alt", "altitude") \
+.withColumn("data_source", lit(data_source))
+
 
 # COMMAND ----------
 
 # DBTITLE 1,Add new column for ingestion date
-circuits_final_df = circuits_renamed_df.withColumn("ingestion_date", current_timestamp())
+circuits_final_df = add_ingestion_date(circuits_renamed_df)
+
 
 # COMMAND ----------
 
 # DBTITLE 1,Write Data to Datalake as Parquet file format
-circuits_final_df.write.mode("overwrite").parquet("/mnt/formula1lakedata/processed/circuits")
-display(spark.read.parquet("/mnt/formula1lakedata/processed/circuits"))
+circuits_final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/circuits")
+display(spark.read.parquet(f"{processed_folder_path}/circuits"))
+
+# COMMAND ----------
+
+
