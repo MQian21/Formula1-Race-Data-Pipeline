@@ -1,4 +1,17 @@
 # Databricks notebook source
+# MAGIC %run "../includes/configuration"
+
+# COMMAND ----------
+
+# MAGIC %run "../includes/common_functions"
+
+# COMMAND ----------
+
+dbutils.widgets.text("data_source", "")
+data_source = dbutils.widgets.get("data_source")
+
+# COMMAND ----------
+
 # DBTITLE 1,Import Libs
 from pyspark.sql.types import StructType, StructField, IntegerType, StringType, DateType
 from pyspark.sql.functions import col, concat, current_timestamp, lit
@@ -23,7 +36,7 @@ drivers_schema = StructType(fields = [StructField("driverId", IntegerType(), Fal
 # COMMAND ----------
 
 # DBTITLE 1,Read File
-drivers_df = spark.read.schema(drivers_schema).json("/mnt/formula1lakedata/raw/drivers.json")
+drivers_df = spark.read.schema(drivers_schema).json(f"{raw_folder_path}/drivers.json")
 
 # COMMAND ----------
 
@@ -31,7 +44,8 @@ drivers_df = spark.read.schema(drivers_schema).json("/mnt/formula1lakedata/raw/d
 drivers_renamed_df = drivers_df.withColumnRenamed("driverId", "driver_id") \
                                .withColumnRenamed("driverRef", "driver_ref") \
                                .withColumn("ingestion_date", current_timestamp()) \
-                               .withColumn("name", concat(col("name.forename"), lit(" "), col("name.surname")))
+                               .withColumn("name", concat(col("name.forename"), lit(" "), col("name.surname"))) \
+                               .withColumn("data_source", lit(data_source))
 display(drivers_renamed_df)
 
 # COMMAND ----------
@@ -42,4 +56,4 @@ drivers_final_df = drivers_renamed_df.drop('url')
 # COMMAND ----------
 
 # DBTITLE 1,Write to processed container as parquet file
-drivers_final_df.write.mode("overwrite").parquet("/mnt/formula1lakedata/processed/drivers")
+drivers_final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/drivers")

@@ -1,4 +1,17 @@
 # Databricks notebook source
+# MAGIC %run "../includes/configuration"
+
+# COMMAND ----------
+
+# MAGIC %run "../includes/common_functions"
+
+# COMMAND ----------
+
+dbutils.widgets.text("data_source", "")
+data_source = dbutils.widgets.get("data_source")
+
+# COMMAND ----------
+
 # DBTITLE 1,Import Libs
 from pyspark.sql.types import *
 from pyspark.sql.functions import to_timestamp, concat, col, lit, current_timestamp
@@ -28,7 +41,7 @@ results_schema = StructType(fields = [StructField("resultId", IntegerType(), Fal
 
 # COMMAND ----------
 
-results_df = spark.read.schema(results_schema).json("/mnt/formula1lakedata/raw/results.json")
+results_df = spark.read.schema(results_schema).json(f"{raw_folder_path}/results.json")
 
 # COMMAND ----------
 
@@ -41,7 +54,8 @@ results_with_columns_df = results_df.withColumnRenamed("resultId", "result_id") 
                                     .withColumnRenamed("fastestLap", "fastest_lap") \
                                     .withColumnRenamed("fastestLapTime", "fastest_lap_time") \
                                     .withColumnRenamed("fastestLapSpeed", "fastest_lap_speed") \
-                                    .withColumn("ingestion_date", current_timestamp())
+                                    .withColumn("ingestion_date", current_timestamp()) \
+                                    .withColumn("data_source", lit(data_source))
                                     
 results_final_df = results_with_columns_df.drop(col("statusId"))
 
@@ -51,7 +65,8 @@ results_final_df.write.mode("overwrite").partitionBy('race_id').parquet("/mnt/fo
 
 # COMMAND ----------
 
-display(spark.read.parquet("/mnt/formula1lakedata/processed/results"))
+display(spark.read.parquet(f"{processed_folder_path}/results/race_id=1"))
+
 
 # COMMAND ----------
 

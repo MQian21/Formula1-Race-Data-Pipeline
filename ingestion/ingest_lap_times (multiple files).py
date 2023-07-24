@@ -13,34 +13,32 @@ data_source = dbutils.widgets.get("data_source")
 # COMMAND ----------
 
 from pyspark.sql.types import *
-from pyspark.sql.functions import to_timestamp, concat, col, lit, current_timestamp
+from pyspark.sql.functions import concat, col, lit, current_timestamp
 
 # COMMAND ----------
 
-pit_stops_schema = StructType(fields=[StructField("raceId", IntegerType(), False),
+lap_times_schema = StructType(fields=[StructField("raceId", IntegerType(), False),
                                       StructField("driverId", IntegerType(), True),
-                                      StructField("stop", StringType(), True),
                                       StructField("lap", IntegerType(), True),
+                                      StructField("position", IntegerType(), True),
                                       StructField("time", StringType(), True),
-                                      StructField("duration", StringType(), True),
                                       StructField("milliseconds", IntegerType(), True)
                                      ])
 
 # COMMAND ----------
 
-pit_stops_df = spark.read.schema(pit_stops_schema).option("multiLine", True).json(f"{raw_folder_path}/pit_stops.json")
+lap_times_df = spark.read \
+.schema(lap_times_schema) \
+.csv(f"{raw_folder_path}/lap_times")
 
 # COMMAND ----------
 
-pit_final_df = pit_stops_df.withColumnRenamed("driverId", "driver_id") \
+final_lap_df = lap_times_df.withColumnRenamed("driverId", "driver_id") \
 .withColumnRenamed("raceId", "race_id") \
-.withColumn("ingestion_date", current_timestamp()) \
 .withColumn("data_source", lit(data_source))
 
-# COMMAND ----------
-
-pit_final_df.write.mode("overwrite").parquet("/mnt/formula1lakedata/processed/pit_stops")
+final_lap_df = add_ingestion_date(final_lap_df)
 
 # COMMAND ----------
 
-display(spark.read.parquet(f"{processed_folder_path}/pit_stops"))
+final_lap_df.write.mode("overwrite").parquet(f"{processed_folder_path}/lap_times")
