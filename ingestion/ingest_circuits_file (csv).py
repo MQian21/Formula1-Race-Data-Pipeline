@@ -70,8 +70,10 @@ circuits_final_df = add_ingestion_date(circuits_renamed_df)
 # COMMAND ----------
 
 # DBTITLE 1,Write Data to Datalake as Parquet file format
-circuits_final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/circuits")
-display(spark.read.parquet(f"{processed_folder_path}/circuits"))
+circuits_final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_processed.circuits")
+
+# circuits_final_df.write.mode("overwrite").parquet("/mnt/formula1lakedata/processed/circuits")
+
 
 # COMMAND ----------
 
