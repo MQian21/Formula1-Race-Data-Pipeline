@@ -51,7 +51,8 @@ constructor_final_df = constructor_dropped_df.withColumnRenamed("constructorId",
 # COMMAND ----------
 
 # DBTITLE 1,Write to processed container
-constructor_final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/constructors")
+
+constructor_final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_processed.constructors")
 
 # COMMAND ----------
 

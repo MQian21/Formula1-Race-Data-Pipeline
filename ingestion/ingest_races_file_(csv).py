@@ -58,4 +58,10 @@ races_selected_df = races_timestamp_df.select(col('race_id'), col('race_year'), 
 # COMMAND ----------
 
 # DBTITLE 1,Write to Processed Container in Datalake as parquet file
-races_selected_df.write.mode('overwrite').partitionBy('race_year').parquet(f"{processed_folder_path}/races")
+# races_selected_df.write.mode('overwrite').partitionBy('race_year').parquet(f"{processed_folder_path}/races")
+
+races_selected_df.write.mode("overwrite").partitionBy('race_year').format("parquet").saveAsTable("f1_processed.races")
+
+# COMMAND ----------
+
+

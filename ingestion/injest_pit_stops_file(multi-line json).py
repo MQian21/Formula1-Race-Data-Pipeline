@@ -39,7 +39,9 @@ pit_final_df = pit_stops_df.withColumnRenamed("driverId", "driver_id") \
 
 # COMMAND ----------
 
-pit_final_df.write.mode("overwrite").parquet("/mnt/formula1lakedata/processed/pit_stops")
+# pit_final_df.write.mode("overwrite").parquet("/mnt/formula1lakedata/processed/pit_stops")
+
+pit_final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_processed.pit_stops")
 
 # COMMAND ----------
 

@@ -61,7 +61,7 @@ results_final_df = results_with_columns_df.drop(col("statusId"))
 
 # COMMAND ----------
 
-results_final_df.write.mode("overwrite").partitionBy('race_id').parquet("/mnt/formula1lakedata/processed/results")
+results_final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_processed.results")
 
 # COMMAND ----------
 

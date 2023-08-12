@@ -56,4 +56,6 @@ drivers_final_df = drivers_renamed_df.drop('url')
 # COMMAND ----------
 
 # DBTITLE 1,Write to processed container as parquet file
-drivers_final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/drivers")
+# drivers_final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/drivers")
+
+drivers_final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_processed.drivers")

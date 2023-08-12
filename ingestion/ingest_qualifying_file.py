@@ -41,11 +41,16 @@ qualifying_df = spark.read \
 final_df = qualifying_df.withColumnRenamed("qualifyId", "qualify_id") \
 .withColumnRenamed("driverId", "driver_id") \
 .withColumnRenamed("raceId", "race_id") \
-.withColumnRenamed("constructorId", "constructor_id") \
-.withColumn("race_id", lit(race_id))
+.withColumnRenamed("constructorId", "constructor_id") 
 
 final_df = add_ingestion_date(final_df)
 
 # COMMAND ----------
 
-final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/qualifying")
+# final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/qualifying")
+
+final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_processed.qualifying")
+
+# COMMAND ----------
+
+
