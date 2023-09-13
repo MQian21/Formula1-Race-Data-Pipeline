@@ -12,6 +12,11 @@ data_source = dbutils.widgets.get("data_source")
 
 # COMMAND ----------
 
+dbutils.widgets.text("file_date", "2021-03-28")
+file_date = dbutils.widgets.get("file_date")
+
+# COMMAND ----------
+
 from pyspark.sql.types import *
 from pyspark.sql.functions import concat, col, lit
 
@@ -33,7 +38,7 @@ qualifying_schema = StructType(fields=[StructField("qualifyId", IntegerType(), F
 qualifying_df = spark.read \
 .schema(qualifying_schema) \
 .option("multiLine", True) \
-.json(f"{raw_folder_path}/qualifying")
+.json(f"{raw_folder_path}/{file_date}/qualifying")
 
 
 # COMMAND ----------
@@ -41,7 +46,8 @@ qualifying_df = spark.read \
 final_df = qualifying_df.withColumnRenamed("qualifyId", "qualify_id") \
 .withColumnRenamed("driverId", "driver_id") \
 .withColumnRenamed("raceId", "race_id") \
-.withColumnRenamed("constructorId", "constructor_id") 
+.withColumnRenamed("constructorId", "constructor_id") \
+.withColumn("file_date", lit(file_date))
 
 final_df = add_ingestion_date(final_df)
 
@@ -49,7 +55,9 @@ final_df = add_ingestion_date(final_df)
 
 # final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/qualifying")
 
-final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_processed.qualifying")
+# final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_processed.qualifying")
+
+overwrite_partition(final_df, "f1_processed", "qualifying", "race_id")   
 
 # COMMAND ----------
 

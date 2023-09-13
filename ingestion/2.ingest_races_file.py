@@ -12,6 +12,11 @@ data_source = dbutils.widgets.get("data_source")
 
 # COMMAND ----------
 
+dbutils.widgets.text("file_date", "2021-03-21")
+file_date = dbutils.widgets.get("file_date")
+
+# COMMAND ----------
+
 # DBTITLE 1,Import Libraries
 from pyspark.sql.types import *
 from pyspark.sql.functions import to_timestamp, concat, col, lit, current_timestamp
@@ -34,7 +39,7 @@ races_schema = StructType(fields=[StructField("raceId", IntegerType(), False),
 races_df = spark.read \
 .option("header", True) \
 .schema(races_schema) \
-.csv(f"{raw_folder_path}/races.csv")
+.csv(f"{raw_folder_path}/{file_date}/races.csv")
 
 # COMMAND ----------
 
@@ -48,7 +53,8 @@ races_renamed_df = races_df.withColumnRenamed("raceId", "race_id") \
 
 # DBTITLE 1,Transform date and time into race_timestamp column
 races_timestamp_df = races_renamed_df.withColumn('race_timestamp', to_timestamp(concat(col('date'), lit(' '), col('time')), 'yyyy-MM-dd HH:mm:ss')) \
-                                 .withColumn('ingestion_date', current_timestamp()).withColumn("data_source", lit(data_source))
+                                 .withColumn('ingestion_date', current_timestamp()).withColumn("data_source", lit(data_source)) \
+                                     .withColumn("file_date", lit(file_date))
 
 # COMMAND ----------
 

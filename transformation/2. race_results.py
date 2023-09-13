@@ -3,8 +3,17 @@
 
 # COMMAND ----------
 
+# MAGIC %run "../includes/common_functions"
+
+# COMMAND ----------
+
 dbutils.widgets.text("data_source", "")
 data_source = dbutils.widgets.get("data_source")
+
+# COMMAND ----------
+
+dbutils.widgets.text("file_date", "2021-03-21")
+file_date = dbutils.widgets.get("file_date")
 
 # COMMAND ----------
 
@@ -31,7 +40,10 @@ races_df = spark.read.parquet(f"{processed_folder_path}/races") \
 .withColumnRenamed("race_timestamp", "race_date") 
 
 results_df = spark.read.parquet(f"{processed_folder_path}/results") \
-.withColumnRenamed("time", "race_time") 
+.filter(f"file_date = '{file_date}'") \
+.withColumnRenamed("time", "race_time") \
+.withColumnRenamed("race_id", "results_race_id") \
+.withColumnRenamed("file_date", "results_file_date")
 
 # COMMAND ----------
 
@@ -42,16 +54,17 @@ race_circuits_df = races_df.join(circuits_df, races_df.circuit_id == circuits_df
 # COMMAND ----------
 
 # DBTITLE 1,Join dataframes
-race_results_df = results_df.join(race_circuits_df, results_df.race_id == race_circuits_df.race_id) \
+race_results_df = results_df.join(race_circuits_df, results_df.results_race_id == race_circuits_df.race_id) \
                             .join(drivers_df, results_df.driver_id == drivers_df.driver_id) \
                             .join(constructors_df, results_df.constructor_id == constructors_df.constructor_id)
 
 # COMMAND ----------
 
 # DBTITLE 1,Select required columns and add created_date column
-final_df = race_results_df.select("race_year", "race_name", "race_date", "circuit_location", "driver_name", "driver_number", "driver_nationality",
-                                 "team", "grid", "fastest_lap", "race_time", "points", "position") \
-                          .withColumn("created_date", current_timestamp())
+final_df = race_results_df.select("race_id", "race_year", "race_name", "race_date", "circuit_location", "driver_name", "driver_number", "driver_nationality",
+                                 "team", "grid", "fastest_lap", "race_time", "points", "position", "results_file_date") \
+                          .withColumn("created_date", current_timestamp()) \
+                          .withColumnRenamed("results_file_date", "file_date")
 
 # COMMAND ----------
 
@@ -60,7 +73,9 @@ display(final_df.filter("race_year == 2020 and race_name == 'Abu Dhabi Grand Pri
 # COMMAND ----------
 
 # DBTITLE 1,Write to presentation layer
-final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_presentation.race_results")
+# final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_presentation.race_results")
+
+overwrite_partition(final_df, 'f1_presentation', 'race_results', 'race_id')
 
 # COMMAND ----------
 

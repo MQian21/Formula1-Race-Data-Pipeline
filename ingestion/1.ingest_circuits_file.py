@@ -18,6 +18,12 @@ data_source = dbutils.widgets.get("data_source")
 
 # COMMAND ----------
 
+# DBTITLE 1,Create parameter for file date
+dbutils.widgets.text("file_date", "2021-03-21")
+file_date = dbutils.widgets.get("file_date")
+
+# COMMAND ----------
+
 from pyspark.sql.types import *
 from pyspark.sql.functions import col, lit
 
@@ -43,7 +49,7 @@ circuits_schema = StructType(fields=[StructField("circuitId", IntegerType(), Fal
 circuits_df = spark.read \
 .option("header", True) \
 .schema(circuits_schema) \
-.csv(f"{raw_folder_path}/circuits.csv")
+.csv(f"{raw_folder_path}/{file_date}/circuits.csv")
 
 # COMMAND ----------
 
@@ -58,7 +64,9 @@ circuits_renamed_df = circuits_selected_df.withColumnRenamed("circuitId", "circu
 .withColumnRenamed("lat", "latitude") \
 .withColumnRenamed("lng", "longitude") \
 .withColumnRenamed("alt", "altitude") \
-.withColumn("data_source", lit(data_source))
+.withColumn("data_source", lit(data_source)) \
+.withColumn("file_date", lit(file_date))
+
 
 
 # COMMAND ----------
